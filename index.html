@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#222926">
+  <title>Semantic TextNavigator — условия договоров</title>
+  <link rel="icon" type="image/svg+xml" href="./src/favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">К результатам проверки</a>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">N<span>↗</span></span><span>Semantic <strong>TextNavigator</strong></span><span class="pill neutral">MVP</span></div>
+    <div class="local"><span class="dot"></span> Локальное рабочее пространство</div>
+  </header>
+  <main id="main">
+    <div class="page-heading"><div><p class="eyebrow">ЗАКУПКИ / ПРОВЕРКА УСЛОВИЙ</p><h1>Проверка файлов</h1><p class="intro">Суммы и сроки поставки по договорам.</p></div></div>
+    <input id="file-input" type="file" accept=".txt,text/plain" multiple hidden>
+    <section class="workspace-bar" aria-label="Параметры проверки">
+      <div><label for="check-date">Дата проверки</label><input id="check-date" type="date" value="2026-03-10" min="1900-01-01" max="2200-12-31"></div>
+      <div class="storage-block"><span id="storage-status">Подключение…</span></div>
+      <button id="clear-data" class="quiet danger">Очистить данные</button>
+    </section>
+    <div id="messages" role="status" aria-live="polite"></div>
+    <div id="drop-zone" tabindex="0" role="button" aria-label="Загрузить или перетащить TXT документы"><span class="upload-symbol" aria-hidden="true">＋</span><div><strong>Загрузить документы</strong><span>Перетащите сюда или нажмите, чтобы выбрать · TXT до 2 МБ</span></div></div>
+    <section class="metrics" id="metrics" aria-label="Итоги проверки"></section>
+    <nav class="tabs" aria-label="Разделы"><button data-tab="contracts" class="active" aria-selected="true">Договоры <span id="contract-count">0</span></button><button data-tab="questions" aria-selected="false">Вопросы к комплекту</button><button data-tab="documents" aria-selected="false">Документы <span id="document-count">0</span></button></nav>
+    <section id="contracts-view" class="view"></section>
+    <section id="questions-view" class="view" hidden></section>
+    <section id="documents-view" class="view" hidden></section>
+    <section class="assurance"><span class="shield" aria-hidden="true">✓</span><p>Подтверждения связаны с цитатами в оригинале.</p><span>Правила v1.2</span></section>
+    <footer>Semantic TextNavigator <span>TXT → условия → основания</span></footer>
+  </main>
+  <dialog id="detail-dialog" aria-labelledby="detail-title"><div class="dialog-head"><div><p class="eyebrow">ДОСЬЕ ДОГОВОРА</p><h2 id="detail-title"></h2></div><button data-close="detail-dialog" class="icon-button" aria-label="Закрыть досье">×</button></div><div id="detail-body"></div></dialog>
+  <dialog id="source-dialog" aria-labelledby="source-title"><div class="dialog-head"><div><p class="eyebrow">ОРИГИНАЛ ДОКУМЕНТА</p><h2 id="source-title"></h2></div><button data-close="source-dialog" class="icon-button" aria-label="Закрыть источник">×</button></div><div id="source-meta"></div><div id="source-text"></div><div class="dialog-footer"><span>Исходный текст без смыслового редактирования</span><button id="download-source" class="secondary">Скачать исходный TXT</button></div></dialog>
+  <dialog id="clear-dialog" aria-labelledby="clear-title"><h2 id="clear-title">Очистить локальный комплект?</h2><p>Документы, версии и результаты будут удалены из этого браузера. Исходные файлы на диске сохранятся.</p><div class="button-row"><button data-close="clear-dialog" class="secondary">Отмена</button><button id="confirm-clear" class="primary">Очистить</button></div></dialog>
+  <noscript>Для анализа документов включите JavaScript.</noscript>
+</body>
+</html>
+
