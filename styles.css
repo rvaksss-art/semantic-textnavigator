@@ -67,7 +67,12 @@ main { padding-block: 27px 0; }
 .workspace { padding: 20px; box-shadow: 0 5px 19px #1d245208; scroll-margin-top: 17px; }
 .workspace-head, .workspace-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .workspace-head { margin-bottom: 15px; }
-#storage-status { color: var(--muted); font-size: 12px; text-align: right; }
+.workspace-head p { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.sample-button { display: inline-flex; align-items: center; gap: 10px; flex: none; border: 1px solid #302452; border-radius: 10px; padding: 9px 14px 9px 9px; background: #302452; color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
+.sample-button:hover { background: #4b357b; }
+.sample-button > span:first-child { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 7px; background: #d9cdff; color: #2c1f53; font-size: 21px; }
+.sample-button small { display: block; margin-top: 2px; color: #e2d9fb; font-size: 11px; font-weight: 500; }
+#storage-status { margin-left: auto; color: var(--muted); font-size: 12px; text-align: right; }
 .workspace-bar { margin-top: 12px; }
 .workspace-bar > div { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .workspace-bar label { font-size: 12px; font-weight: 650; }
@@ -80,13 +85,23 @@ main { padding-block: 27px 0; }
   font-size: 13px;
   max-width: 100%;
 }
-#drop-zone { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: 1px dashed #aca0e3; border-radius: 11px; padding: 13px; background: #f8f6ff; }
+.input-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: stretch; }
+#drop-zone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 174px; width: 100%; text-align: center; border: 1px dashed #aca0e3; border-radius: 11px; padding: 16px; background: #f8f6ff; }
 #drop-zone:hover, #drop-zone.dragging { background: #efebff; border-color: var(--accent); }
 .upload-copy { min-width: 0; }
 .upload-copy strong, #drop-help { display: block; }
 .upload-copy strong { font-size: 14px; margin-bottom: 3px; }
 #drop-help { font-size: 12px; color: var(--muted); line-height: 1.45; }
-.drop-action { margin-left: auto; display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; background: var(--accent); color: #fff; border-radius: 8px; padding: 9px 12px; font-size: 12px; font-weight: 650; }
+.drop-action { display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; background: var(--accent); color: #fff; border-radius: 8px; padding: 9px 12px; font-size: 12px; font-weight: 650; }
+.text-form { background: #f9f9fd; border: 1px solid var(--line); border-radius: 11px; padding: 13px; min-width: 0; }
+.text-form label { display: block; margin-bottom: 7px; font-size: 14px; font-weight: 650; }
+.text-form textarea { display: block; width: 100%; min-height: 80px; resize: vertical; border: 1px solid #cbcbe2; border-radius: 8px; background: #fff; padding: 9px 11px; color: var(--ink); font: 13px/1.4 Inter, "Segoe UI", sans-serif; }
+.text-form textarea::placeholder { color: var(--muted); }
+#text-help, .text-result { margin: 6px 0 9px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.text-result { margin: 8px 0 0; overflow-wrap: anywhere; }
+.text-result:empty { margin: 0; }
+.text-result[data-state="complete"] { color: #215e4d; }
+.text-result[data-state="error"] { color: #9b3b52; }
 .primary, .secondary, .quiet, .icon-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 8px; border: 1px solid transparent; padding: 8px 12px; font-size: 13px; font-weight: 600; }
 .primary { color: #fff; background: var(--accent); }
 .primary:hover { background: #42318f; }
@@ -213,9 +228,11 @@ dialog::backdrop { background: #17132c92; backdrop-filter: blur(3px); }
   .preview-head { padding-bottom: 10px; }
   main { padding-top: 15px; }
   .workspace { padding: 12px; }
-  .workspace-head { gap: 9px; }
+  .workspace-head { gap: 10px; align-items: flex-start; flex-direction: column; }
   .workspace-bar, .view-head { flex-wrap: wrap; }
-  .drop-action { display: none; }
+  .input-grid { grid-template-columns: 1fr; }
+  #drop-zone { min-height: 0; }
+  #storage-status { margin-left: 0; text-align: left; }
   .metrics { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
   .metric { padding: 11px; }
   .metric-number { font-size: 24px; }

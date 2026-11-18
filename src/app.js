@@ -1,5 +1,6 @@
 import { analyze, answerQuestion } from './engine.js';
 import { mergeFiles } from './loader.js';
+import { parseDocument } from './parser.js';
 import { loadWorkspace, saveWorkspace, clearWorkspace } from './storage.js';
 import { FIELD_LABELS } from './terminology.js';
 
@@ -56,21 +57,94 @@ function recalculate(save = true) {
   render();
   if (save) persist();
 }
-function setBusy(value) { busy = value; $('#file-input').disabled = value; $('#drop-zone').disabled = value; $('#clear-data').disabled = value; }
-async function importFiles(files) {
-  if (busy || !files.length) return;
+function setBusy(value) {
+  busy = value;
+  for (const id of ['file-input', 'drop-zone', 'submit-text', 'clear-data']) $(`#${id}`).disabled = value;
+}
+async function importFiles(files, validateNewDocument) {
+  if (busy || !files.length) return null;
+  const date = $('#check-date');
+  if (!date.value || !date.validity.valid) {
+    const message = 'Введите корректную дату проверки и повторите загрузку.';
+    if (!validateNewDocument) notify(message);
+    return { added: [], messages: [message] };
+  }
   setBusy(true);
-  storageStatus('Проверка документов…');
   try {
     const previousIds = new Set(documents.map(d => d.id));
     const result = await mergeFiles(documents, files);
+    const added = result.documents.filter(d => !previousIds.has(d.id));
+    if (validateNewDocument && added.length) {
+      const rejection = validateNewDocument(added[0]);
+      if (rejection) return { added: [], messages: [rejection] };
+    }
+    if (!added.length && validateNewDocument) return { added, messages: result.messages };
     documents = result.documents.map(d => previousIds.has(d.id) ? d : { ...d, unread: true });
-    messages.push(...result.messages);
-    if (result.added) messages.push(`Добавлено документов: ${result.added}. Результаты пересчитаны по исходному тексту.`);
     recalculate();
-    messages.push(...documents.filter(d => !previousIds.has(d.id)).map(uploadOutcome)); showMessages();
-  } catch (error) { notify(`Загрузка не завершена: ${error.message}`); }
+    if (!validateNewDocument) {
+      messages.push(...result.messages);
+      if (result.added) messages.push(`Добавлено документов: ${result.added}. Результаты пересчитаны по исходному тексту.`);
+      messages.push(...added.map(uploadOutcome));
+      showMessages();
+    }
+    return { added, messages: result.messages };
+  } catch (error) {
+    const message = `Загрузка не завершена: ${error.message}`;
+    if (!validateNewDocument) notify(message);
+    return { added: [], messages: [message] };
+  }
   finally { setBusy(false); $('#file-input').value = ''; }
+}
+function validatePastedDocument(doc) {
+  const parsed = parseDocument(doc);
+  if (parsed.type === 'unknown') return 'Не распознан тип документа. Начните текст договора с заголовка «ДОГОВОР 101», указав свой номер.';
+  if (!parsed.contractId) return parsed.issues.find(issue => /номер/iu.test(issue));
+  return null;
+}
+function pastedDocumentOutcome(doc) {
+  const parsed = analysis.documents.find(d => d.id === doc.id);
+  const row = analysis.contracts.find(c => c.id === parsed?.contractId);
+  if (!row) return `Текст добавлен в «Документы». Загрузите исходный договор ${parsed?.contractId ?? ''}, чтобы проверить его условия.`;
+  const state = row.timeline.find(entry => entry.documentId === doc.id)?.applicability;
+  if (state === 'proposal') return `Текст добавлен к договору ${row.id} как предложение. Действующие условия сохранены.`;
+  if (state === 'future') return `Текст добавлен к договору ${row.id}. Документ ещё не действует на выбранную дату проверки.`;
+  const details = ['amount', 'deadline'].map(field => {
+    const result = row.fields[field];
+    return result.state === 'confirmed' ? `${FIELD_LABELS[field]}: ${valueLabel(result, field)}.` : `${FIELD_LABELS[field]}: ${result.reason}`;
+  });
+  return [`Текст добавлен к договору ${row.id}.`, ...(parsed?.issues ?? []), ...details].join(' ');
+}
+async function submitText(event) {
+  event.preventDefault();
+  if (busy) return;
+  const input = $('#document-text');
+  const status = $('#text-result');
+  if (!input.value.trim()) {
+    status.dataset.state = 'error';
+    status.textContent = 'Введите или вставьте текст документа.';
+    input.focus();
+    return;
+  }
+  let index = documents.length + 1;
+  const name = () => `Введённый текст ${index}.txt`;
+  while (documents.some(doc => doc.name === name())) index++;
+  const file = new File([input.value], name(), { type: 'text/plain' });
+  status.dataset.state = 'pending';
+  status.textContent = 'Проверяем текст…';
+  input.readOnly = true;
+  try {
+    const result = await importFiles([file], validatePastedDocument);
+    if (!result?.added.length) {
+      status.dataset.state = 'error';
+      status.textContent = result?.messages.join(' ') || 'Проверка сейчас недоступна. Попробуйте ещё раз.';
+      return;
+    }
+    input.value = '';
+    status.dataset.state = 'complete';
+    status.textContent = pastedDocumentOutcome(result.added[0]);
+    const rowLinked = analysis.contracts.some(row => row.documents.includes(result.added[0].id));
+    setTab(rowLinked ? 'contracts' : 'documents');
+  } finally { input.readOnly = false; }
 }
 function sourceButton(ev, label = null) {
   return `<button class="source-link" data-action="source" data-doc="${esc(ev.documentId)}" data-paragraph="${ev.paragraph}" data-start="${ev.start}" data-end="${ev.end}">${esc(label ?? `${ev.filename} · абзац ${ev.paragraph + 1}`)} ↗</button>`;
@@ -191,6 +265,7 @@ function cutoffAnswer() {
 }
 
 $('#file-input').addEventListener('change', e => importFiles([...e.target.files]));
+$('#text-form').addEventListener('submit', submitText);
 $('#drop-zone').addEventListener('click', () => { if (!busy) $('#file-input').click(); });
 for (const name of ['dragenter', 'dragover']) $('#drop-zone').addEventListener(name, e => { e.preventDefault(); $('#drop-zone').classList.add('dragging'); });
 for (const name of ['dragleave', 'drop']) $('#drop-zone').addEventListener(name, e => { e.preventDefault(); $('#drop-zone').classList.remove('dragging'); });
@@ -201,7 +276,7 @@ $('#confirm-clear').addEventListener('click', async () => {
   await persistQueue;
   let warning = null;
   try { await clearWorkspace(); } catch { warning = 'Память очищена. IndexedDB недоступна: для удаления ранее сохранённых данных очистите данные сайта в настройках браузера.'; }
-  documents = []; messages = warning ? [warning] : []; qSelection = {}; $('#clear-dialog').close(); recalculate(false); storageStatus('Локальный комплект очищен');
+  documents = []; messages = warning ? [warning] : []; qSelection = {}; $('#text-result').textContent = ''; $('#clear-dialog').close(); recalculate(false); storageStatus('Локальный комплект очищен');
 });
 $('#download-source').addEventListener('click', () => {
   if (!currentSource) return;

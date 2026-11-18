@@ -36,11 +36,24 @@
   </header>
   <main id="main">
     <section class="workspace" id="workspace" aria-labelledby="workspace-title" tabindex="-1">
-      <div class="workspace-head"><h2 id="workspace-title">Проверка документов</h2><span id="storage-status">Подключение…</span></div>
+      <div class="workspace-head">
+        <div><h2 id="workspace-title">Проверка документов</h2><p>Попробуйте на примерах, загрузите свои TXT или вставьте текст договора.</p></div>
+        <a class="sample-button" href="./samples/semantic-textnavigator-examples.zip" download><span aria-hidden="true">↓</span><span>Скачать примеры <small>6 TXT в ZIP</small></span></a>
+      </div>
       <input id="file-input" type="file" accept=".txt,text/plain" multiple hidden>
-      <button type="button" id="drop-zone" aria-describedby="drop-help"><span class="upload-symbol" aria-hidden="true">↑</span><span class="upload-copy"><strong>Загрузить документы</strong><span id="drop-help">Перетащите файлы сюда или выберите их на диске. TXT до 2 МБ на файл.</span></span><span class="drop-action" aria-hidden="true">Выбрать TXT <span>↗</span></span></button>
+      <div class="input-grid">
+        <button type="button" id="drop-zone" aria-describedby="drop-help"><span class="upload-symbol" aria-hidden="true">↑</span><span class="upload-copy"><strong>Загрузить документы</strong><span id="drop-help">Распакуйте архив и добавьте файлы или перетащите свои TXT сюда. До 2 МБ на файл.</span></span><span class="drop-action">Выбрать TXT <span aria-hidden="true">↗</span></span></button>
+        <form id="text-form" class="text-form">
+          <label for="document-text">Вставить или ввести текст</label>
+          <textarea id="document-text" rows="4" spellcheck="false" aria-describedby="text-help" placeholder="ДОГОВОР 101&#10;Дата: 05.02.2026&#10;Статус: подписан обеими сторонами"></textarea>
+          <p id="text-help">Один документ за раз. Укажите заголовок, номер, дату и статус подписания.</p>
+          <button id="submit-text" class="primary" type="submit">Проверить текст <span aria-hidden="true">↗</span></button>
+          <p id="text-result" class="text-result" role="status"></p>
+        </form>
+      </div>
       <div class="workspace-bar">
         <div><label for="check-date">Дата проверки</label><input id="check-date" type="date" value="2026-03-10" min="1900-01-01" max="2200-12-31"></div>
+        <span id="storage-status">Подключение…</span>
         <button id="clear-data" class="quiet danger">Очистить данные</button>
       </div>
     </section>

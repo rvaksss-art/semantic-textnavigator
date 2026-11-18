@@ -1,6 +1,6 @@
 // Second circuit: verifies source bytes/text positions and business invariants directly.
 // It never calls parseDocument, candidate extraction, or the rules engine.
-import { contractRefs, isoDate, dates, wordsAmount } from './text.js';
+import { hasContractHeading, contractRefs, isoDate, dates, wordsAmount } from './text.js';
 
 function auditPrecedence(candidate, context, effect) {
   if (candidate.field === 'supplier') return [];
@@ -12,7 +12,7 @@ function auditPrecedence(candidate, context, effect) {
     const lines = doc.text.split(/\r?\n/u);
     const title = lines.filter(s => s.trim()).slice(0, 2).join('\n');
     const isChange = /дополнительн[а-яё]*\s+соглашени/iu.test(title);
-    const isContract = !isChange && /договор\s+(?:(?:(?:о|на)\s+)?поставк[еиу](?:\s+[а-яё]+){0,6}\s*)?№/iu.test(title);
+    const isContract = !isChange && hasContractHeading(title);
     if (!isChange && !isContract) continue;
     const status = lines.find(s => /^[\s#*]*Статус(?:\s+документа)?\s*:/iu.test(s)) ?? '';
     const positivelySigned = /подписан[оаы]?\s+(?:обеими\s+сторонами|сторонами|покупателем\s+и\s+поставщиком|поставщиком\s+и\s+покупателем)/iu.test(status) && !/не\s+подписан/iu.test(status);
@@ -60,7 +60,7 @@ export function validateField(candidate, context) {
   const quote = doc.text.slice(candidate.evidence.start, candidate.evidence.end);
   const firstLines = doc.text.split(/\r?\n/u).filter(s => s.trim()).slice(0, 2).join('\n');
   const originalType = /дополнительн[а-яё]*\s+соглашени/iu.test(firstLines) ? 'amendment'
-    : /договор\s+(?:(?:(?:о|на)\s+)?поставк[еиу](?:\s+[а-яё]+){0,6}\s*)?№/iu.test(firstLines) ? 'contract' : 'unknown';
+    : hasContractHeading(firstLines) ? 'contract' : 'unknown';
   if (originalType !== source.type || !['contract', 'amendment'].includes(originalType)) errors.push('Тип источника не подтверждён оригиналом.');
   const referenceDate = originalType === 'amendment' ? dates(firstLines.match(/договор[^\r\n]+?\s+от\s+(.+)$/imu)?.[1] ?? '')[0]?.value : null;
   if (referenceDate && base && referenceDate !== base.documentDate) errors.push('Дата договора в ссылке не совпадает с исходным договором.');

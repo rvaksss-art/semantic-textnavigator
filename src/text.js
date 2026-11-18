@@ -41,6 +41,10 @@ export function sentences(text) {
   return text.split(/(?<=[;!?])\s+|(?<=\.)(?=\s+[А-ЯЁ«»"]|$)/u).filter(s => s.trim());
 }
 export function normalizeId(id) { return id.normalize('NFKC').toUpperCase().replace(/[–—−]/g, '-'); }
+export function hasContractHeading(title) {
+  return /договор\s+(?:(?:(?:о|на)\s+)?поставк[еиу](?:\s+[а-яё]+){0,6}\s*)?№/iu.test(title)
+    || /^[\t \u00a0]*[#*]*[\t \u00a0]*договор(?:[\t \u00a0]+поставки)?[\t \u00a0]+(?=[\p{L}\p{N}._/–—−-]*\d)[\p{L}\p{N}][\p{L}\p{N}._/–—−-]*[\t \u00a0]*\\?[\t \u00a0]*$/imu.test(title);
+}
 export function contractRefs(text) {
   const refs = [];
   const rx = /договор(?:у|а|ом|е)?[\t \u00a0]*(?:поставки[\t \u00a0]*)?(№\s*)?([\p{L}\p{N}][\p{L}\p{N}._/–—−-]*)/giu;

@@ -1,11 +1,11 @@
 import { TERMS } from './terminology.js';
-import { paragraphs, extractionParagraphs, sentences, dates, contractRefs, moneyIn, wordsAmount, evidence } from './text.js';
+import { paragraphs, extractionParagraphs, sentences, dates, hasContractHeading, contractRefs, moneyIn, wordsAmount, evidence } from './text.js';
 
 export function parseDocument(doc) {
   const lines = paragraphs(doc.text);
   const header = lines.slice(0, 2).map(p => p.text).join('\n');
   const type = TERMS.amendment.test(header) ? 'amendment' : TERMS.letter.test(header) || /^От\s*:/imu.test(doc.text) ? 'letter'
-    : /договор\s+(?:(?:(?:о|на)\s+)?поставк[еиу](?:\s+[а-яё]+){0,6}\s*)?№/iu.test(header) ? 'contract' : 'unknown';
+    : hasContractHeading(header) ? 'contract' : 'unknown';
   const statusLine = lines.find(p => /^[\s#*]*Статус(?:\s+документа)?\s*:/iu.test(p.text));
   const statusText = statusLine?.text ?? '';
   const unsigned = /не\s+подписан|подписание\s+не\s+состоялось|согласие.{0,40}не\s+получено|подписан[оаы]?\s+(?:только|одной\s+стороной)|подпись\s+(?:покупателя|поставщика).{0,35}(?:отсутствует|не\s+(?:поставлена|предоставлена))/iu.test(doc.text);
