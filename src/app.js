@@ -56,7 +56,7 @@ function recalculate(save = true) {
   render();
   if (save) persist();
 }
-function setBusy(value) { busy = value; $('#file-input').disabled = value; $('#clear-data').disabled = value; }
+function setBusy(value) { busy = value; $('#file-input').disabled = value; $('#drop-zone').disabled = value; $('#clear-data').disabled = value; }
 async function importFiles(files) {
   if (busy || !files.length) return;
   setBusy(true);
@@ -171,7 +171,7 @@ function renderDocuments() {
 }
 function renderQuestions() {
   const ids = analysis.contracts.map(c => c.id);
-  for (const [q, preferred] of [['q1', 'STN-101'], ['q2', 'STN-102'], ['q3', 'STN-103']]) if (!ids.includes(qSelection[q])) qSelection[q] = ids.includes(preferred) ? preferred : ids[0] ?? '';
+  for (const question of ['q1', 'q2', 'q3']) if (!ids.includes(qSelection[question])) qSelection[question] = ids[0] ?? '';
   const select = q => `<label>Договор <select data-question="${q}" aria-label="Договор для вопроса ${q.slice(1)}">${ids.length ? ids.map(id => `<option value="${esc(id)}" ${qSelection[q] === id ? 'selected' : ''}>${esc(id)}</option>`).join('') : '<option>Нет договоров</option>'}</select></label>`;
   $('#questions-view').innerHTML = `<div class="view-head"><div><h3>Четыре вопроса к комплекту</h3><p>Ответы рассчитываются по загруженным документам на ${dateLabel(analysis.checkDate)}.</p></div></div><div class="question-list">${[
     ['q1', 'Какой срок поставки действует на дату проверки?', 'deadline'],
@@ -192,7 +192,6 @@ function cutoffAnswer() {
 
 $('#file-input').addEventListener('change', e => importFiles([...e.target.files]));
 $('#drop-zone').addEventListener('click', () => { if (!busy) $('#file-input').click(); });
-$('#drop-zone').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!busy) $('#file-input').click(); } });
 for (const name of ['dragenter', 'dragover']) $('#drop-zone').addEventListener(name, e => { e.preventDefault(); $('#drop-zone').classList.add('dragging'); });
 for (const name of ['dragleave', 'drop']) $('#drop-zone').addEventListener(name, e => { e.preventDefault(); $('#drop-zone').classList.remove('dragging'); });
 $('#drop-zone').addEventListener('drop', e => importFiles([...e.dataTransfer.files]));
